@@ -1,0 +1,72 @@
+{
+  "alert": "High-risk agent action influenced by unsafe memory",
+  "alertType": "METRIC_BASED_ALERT",
+  "description": "A sensitive agent action violated policy after using unsafe durable memory.",
+  "ruleType": "threshold_rule",
+  "version": "v5",
+  "schemaVersion": "v2alpha1",
+  "condition": {
+    "compositeQuery": {
+      "queryType": "builder",
+      "panelType": "graph",
+      "unit": "short",
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "signal": "metrics",
+            "stepInterval": 60,
+            "aggregations": [
+              {
+                "metricName": "recallgraph.policy.violations",
+                "temporality": "Delta",
+                "timeAggregation": "sum",
+                "spaceAggregation": "sum"
+              }
+            ],
+            "limit": 100,
+            "order": [{"key": {"name": "__result"}, "direction": "desc"}],
+            "filter": {"expression": ""},
+            "groupBy": [
+              {"name": "source_trust", "fieldContext": "attribute", "fieldDataType": "string"}
+            ],
+            "legend": "{{source_trust}}"
+          }
+        }
+      ]
+    },
+    "selectedQueryName": "A",
+    "thresholds": {
+      "kind": "basic",
+      "spec": [
+        {
+          "name": "critical",
+          "op": "above",
+          "matchType": "at_least_once",
+          "target": 0,
+          "channels": ["__SIGNOZ_ALERT_CHANNEL__"]
+        }
+      ]
+    }
+  },
+  "evaluation": {
+    "kind": "rolling",
+    "spec": {"evalWindow": "5m", "frequency": "1m"}
+  },
+  "notificationSettings": {
+    "groupBy": ["source_trust"],
+    "newGroupEvalDelay": "0s",
+    "renotify": {"enabled": false, "interval": "30m", "alertStates": ["firing"]},
+    "usePolicy": false
+  },
+  "labels": {
+    "project": "recallgraph",
+    "component": "agent-memory",
+    "severity": "critical"
+  },
+  "annotations": {
+    "summary": "Unsafe memory contributed to a policy violation",
+    "description": "A sensitive agent action violated policy after using untrusted, stale, or quarantined memory. Open RecallRoot to inspect the cross-session causal chain. Current value: {{$value}}."
+  }
+}

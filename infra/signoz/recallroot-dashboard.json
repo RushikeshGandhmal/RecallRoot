@@ -1,0 +1,272 @@
+{
+  "title": "RecallGraph — Agent Memory Safety",
+  "description": "Memory provenance, policy violations, sensitive actions, risk scores, and replay effectiveness for RecallRoot.",
+  "tags": ["recallroot", "agent-memory", "safety"],
+  "version": "v5",
+  "uploadedGrafana": false,
+  "variables": {},
+  "layout": [
+    {"h": 6, "i": "42ae1a03-c8ef-47fa-b065-b99420b08874", "w": 6, "x": 0, "y": 0},
+    {"h": 6, "i": "a50f93dd-da7f-4ca6-a037-10c97683e13d", "w": 6, "x": 6, "y": 0},
+    {"h": 6, "i": "0414bb84-7385-4fe9-89d3-8c7ca96546d1", "w": 6, "x": 0, "y": 6},
+    {"h": 6, "i": "19f17424-4f84-47ad-aec5-15f05ae06ac6", "w": 6, "x": 6, "y": 6},
+    {"h": 6, "i": "7586047f-b583-4776-b283-f83c4cfdfe45", "w": 12, "x": 0, "y": 12}
+  ],
+  "widgets": [
+    {
+      "id": "42ae1a03-c8ef-47fa-b065-b99420b08874",
+      "title": "Policy violations",
+      "description": "Detected business-policy violations, grouped by the trust level of the memory that influenced the action.",
+      "panelTypes": "graph",
+      "timePreferance": "GLOBAL_TIME",
+      "yAxisUnit": "short",
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "query": {
+        "id": "8269de47-e6e1-4bb1-b247-75f4315c9f58",
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "recallgraph.policy.violations",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": "Delta",
+                  "timeAggregation": "sum"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {"expression": ""},
+              "functions": [],
+              "groupBy": [
+                {"dataType": "", "id": "source_trust----", "key": "source_trust", "type": ""}
+              ],
+              "having": {"expression": ""},
+              "legend": "{{source_trust}}",
+              "limit": 100,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": 60
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}]
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "contextLinks": {"linksData": []}
+    },
+    {
+      "id": "a50f93dd-da7f-4ca6-a037-10c97683e13d",
+      "title": "Memory use by trust level",
+      "description": "Durable-memory retrievals split by trusted versus untrusted source.",
+      "panelTypes": "graph",
+      "timePreferance": "GLOBAL_TIME",
+      "yAxisUnit": "short",
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "query": {
+        "id": "8353f56d-a65a-4bd2-af76-c068dcfdce5e",
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "recallgraph.memory.uses",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": "Delta",
+                  "timeAggregation": "sum"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {"expression": ""},
+              "functions": [],
+              "groupBy": [
+                {"dataType": "", "id": "trust----", "key": "trust", "type": ""}
+              ],
+              "having": {"expression": ""},
+              "legend": "{{trust}}",
+              "limit": 100,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": 60
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}]
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "contextLinks": {"linksData": []}
+    },
+    {
+      "id": "0414bb84-7385-4fe9-89d3-8c7ca96546d1",
+      "title": "Risk score by trust",
+      "description": "Transparent agent risk scores grouped by the trust level of the selected memory.",
+      "panelTypes": "graph",
+      "timePreferance": "GLOBAL_TIME",
+      "yAxisUnit": "short",
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "query": {
+        "id": "dfc4109f-1de3-4af9-b6b8-a4d55001ff62",
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "recallgraph.memory.risk.score",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "avg",
+                  "temporality": "",
+                  "timeAggregation": "avg"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {"expression": ""},
+              "functions": [],
+              "groupBy": [
+                {"dataType": "", "id": "trust----", "key": "trust", "type": ""}
+              ],
+              "having": {"expression": ""},
+              "legend": "{{trust}}",
+              "limit": 100,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": 60
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}]
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "contextLinks": {"linksData": []}
+    },
+    {
+      "id": "19f17424-4f84-47ad-aec5-15f05ae06ac6",
+      "title": "Sensitive actions by outcome",
+      "description": "Sensitive tool actions grouped by policy outcome, independent of HTTP success.",
+      "panelTypes": "graph",
+      "timePreferance": "GLOBAL_TIME",
+      "yAxisUnit": "short",
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "query": {
+        "id": "fcb2bf9f-c3dc-4194-b8dd-c2a12e8d0c7e",
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "recallgraph.sensitive.actions",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": "Delta",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {"expression": ""},
+              "functions": [],
+              "groupBy": [
+                {"dataType": "", "id": "outcome----", "key": "outcome", "type": ""}
+              ],
+              "having": {"expression": ""},
+              "legend": "{{outcome}}",
+              "limit": 100,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": 60
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}]
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "contextLinks": {"linksData": []}
+    },
+    {
+      "id": "7586047f-b583-4776-b283-f83c4cfdfe45",
+      "title": "Replay effectiveness",
+      "description": "Replay attempts grouped by whether removing unsafe memory improved the business outcome.",
+      "panelTypes": "graph",
+      "timePreferance": "GLOBAL_TIME",
+      "yAxisUnit": "short",
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "query": {
+        "id": "361e74af-80e5-4aac-a2a7-87c567366419",
+        "queryType": "builder",
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "recallgraph.replays",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": "Delta",
+                  "timeAggregation": "increase"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {"expression": ""},
+              "functions": [],
+              "groupBy": [
+                {"dataType": "", "id": "result----", "key": "result", "type": ""}
+              ],
+              "having": {"expression": ""},
+              "legend": "{{result}}",
+              "limit": 100,
+              "orderBy": [],
+              "queryName": "A",
+              "source": "",
+              "stepInterval": 60
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}]
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "contextLinks": {"linksData": []}
+    }
+  ]
+}

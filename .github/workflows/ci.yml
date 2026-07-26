@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API / Python 3.12
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.25"
+          enable-cache: true
+
+      - name: Install locked dependencies
+        run: uv sync --project apps/api --extra dev --locked
+
+      - name: Lint Python
+        run: |
+          uv run --project apps/api ruff check --config apps/api/pyproject.toml apps/api scripts
+          uv run --project apps/api ruff format --check --config apps/api/pyproject.toml apps/api scripts
+
+      - name: Test API
+        run: uv run --project apps/api pytest -c apps/api/pyproject.toml apps/api/tests
+
+      - name: Compile operator scripts
+        run: python -m compileall -q scripts
+
+  web:
+    name: Web / Node 22
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci
+        working-directory: apps/web
+
+      - name: Lint
+        run: npm run lint
+        working-directory: apps/web
+
+      - name: Type-check
+        run: npm run typecheck
+        working-directory: apps/web
+
+      - name: Build
+        run: npm run build
+        working-directory: apps/web
+
+  infrastructure:
+    name: Foundry lock and SigNoz assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate JSON assets
+        run: |
+          python -m json.tool infra/signoz/recallroot-dashboard.json >/dev/null
+          python -m json.tool infra/signoz/alert-rule.template.json >/dev/null
+
+      - name: Install checksum-verified Foundry v0.2.16
+        env:
+          FOUNDRY_INSTALL_DIR: ${{ runner.temp }}/foundry-bin
+          FOUNDRY_VERSION: v0.2.16
+          FOUNDRY_ASSUME_YES: "true"
+        run: |
+          curl -fsSL https://signoz.io/foundry.sh -o "${{ runner.temp }}/foundry.sh"
+          bash "${{ runner.temp }}/foundry.sh"
+
+      - name: Re-forge and verify committed lock
+        run: |
+          "${{ runner.temp }}/foundry-bin/foundryctl" forge \
+            -f casting.yaml \
+            -p "${{ runner.temp }}/pours" \
+            --no-ledger \
+            --no-updater \
+            --format text
+          git diff --exit-code -- casting.yaml.lock

@@ -1,0 +1,57 @@
+apiVersion: v1alpha1
+kind: Installation
+metadata:
+  name: recallroot-signoz
+spec:
+  deployment:
+    flavor: compose
+    mode: docker
+  patches:
+    - target: deployment/compose.yaml
+      operations:
+        # Pin the exact images exercised by this project. The generated lock
+        # remains reproducible even if an upstream `latest` tag moves.
+        - op: replace
+          path: /services/ingester/image
+          value: signoz/signoz-otel-collector@sha256:7e4e539a73f1f88fbc1cd7e659ab3950908e83ce1f2a37a297452f910d072174
+        - op: replace
+          path: /services/recallroot-signoz-telemetrystore-migrator/image
+          value: signoz/signoz-otel-collector@sha256:7e4e539a73f1f88fbc1cd7e659ab3950908e83ce1f2a37a297452f910d072174
+        - op: replace
+          path: /services/recallroot-signoz-mcp/image
+          value: signoz/signoz-mcp-server@sha256:852ed83da10c5bc2f0bfd7f4bf3f6261ea0ed03b1d3fe58e943cfd59749e08c7
+        - op: replace
+          path: /services/recallroot-signoz-signoz-0/image
+          value: signoz/signoz@sha256:588a8ea3deeab1a6a4cb42261607457c36eee6ffbb510184880f1f826be4b646
+        - op: replace
+          path: /services/ingester/ports/0
+          value: "127.0.0.1:4317:4317"
+        - op: replace
+          path: /services/ingester/ports/1
+          value: "127.0.0.1:4318:4318"
+        - op: replace
+          path: /services/recallroot-signoz-mcp/ports/0
+          value: "127.0.0.1:8001:8001"
+        - op: replace
+          path: /services/recallroot-signoz-signoz-0/ports/0
+          value: "127.0.0.1:3301:8080"
+    # Foundry v0.2.16 resolves the first advertised :4320 address when MCP is
+    # enabled, which can point the ingester at the MCP container. Pin OpAMP to
+    # the generated SigNoz service so dynamic collector pipelines stay active.
+    - target: deployment/ingester/opamp.yaml
+      operations:
+        - op: replace
+          path: /server_endpoint
+          value: ws://recallroot-signoz-signoz-0:4320/v1/opamp
+  mcp:
+    spec:
+      enabled: true
+      env:
+        # Keep the FastAPI service on 8000; expose the MCP endpoint on 8001.
+        MCP_SERVER_PORT: "8001"
+        # Explicitly target the generated SigNoz service. Foundry otherwise
+        # derives this value, which can vary with the installation name.
+        SIGNOZ_URL: http://recallroot-signoz-signoz-0:8080
+        # Keep the credential outside version control. Docker Compose resolves
+        # this expression from the operator's ignored root .env at startup.
+        SIGNOZ_API_KEY: "${SIGNOZ_API_KEY:-}"
